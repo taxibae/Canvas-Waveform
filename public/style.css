@@ -1,0 +1,12 @@
+body{
+    background-color: lightgrey;
+}
+
+#service_container{
+    width: 1000px;
+    height: 80px;
+    position: relative;
+}
+#service_container > *{
+    position: absolute;
+}

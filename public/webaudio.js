@@ -71,6 +71,19 @@ $(document).ready(function () {
             element.stop(0);
         }, this);
     });
+
+    $('#music_print').click(function (e) { 
+        e.preventDefault();
+        $.ajax({
+            url: "data.json",
+            dataType: "text",
+            success: function (response) {
+                var json = $.parseJSON(jsonObject);
+            }
+        });
+    });
+
+
 });
 
 //Draw function
@@ -89,38 +102,107 @@ function drawAudioWave(audioBuffer) {
         window.alert( 'The number of channels is invalid.');
         return;
     }
-    console.log(channelLs);
-
-    var canvas = document.querySelector('canvas');
-    var canvasContext = canvas.getContext('2d');
-
-    var width = canvas.width;
-    var height = canvas.height;
-
-    // Sampling period
-    var period = 1 / audioContext.sampleRate;
-
-    // The number of samples during 50 msec
-    var n50msec = Math.floor(50 * Math.pow(10, -3) * audioContext.sampleRate);
-
-    // Clear previous data
-    canvasContext.clearRect(0, 0, width, height);
-
-    // Draw audio wave
-    canvasContext.beginPath();
-
-    for(var i = 0, len = channelLs.length; i <len; i ++) {
-        if ((i % n50msec) === 0){
-            var x = (i / len) * width;
-            var y = ((1 - channelLs [i]) / 2) * height;
-
-            if (i === 0){
-                canvasContext.moveTo(x, y);
-            }
-            else{
-                canvasContext.lineTo(x, y);
-            }
-        }
+    // Sound Monolize
+    var channelData = {
+        height: 255,
+        width: 3000,
+        samples: []
     }
-    canvasContext.stroke ();
+    var audioSampleLength = channelLs.length;
+    var channelDataDistance = Math.floor(audioSampleLength / channelData.width);
+
+    // Get Sound Sample Peaks
+    for(var i = 0 ; i < channelData.width ; i ++){
+        for(var j = 0, buffer = 0 ; j < channelDataDistance ; j++){
+            buffer += ((Math.abs(channelLs[channelDataDistance * i + j]) + Math.abs(channelRs[channelDataDistance * i + j]))/2) * channelData.height;
+        }
+        // Mean
+        channelData.samples[i] = Math.round(buffer / channelDataDistance);
+    }
+
+    /* Waveform Print Logic */
+    // json download logic
+    var jsonData = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(channelData));
+    $('#music_download > *').remove();
+    $('<a href="data:' + jsonData + '" download="data.json">download JSON</a>').appendTo('#music_download');
+    initCanvas(channelData);
+    modifyCanvas(channelData);
 };
+
+function initCanvas(channelData) {
+    // Find Sample max Peak
+    var maxPeak = channelData.samples.reduce(function (previous, current) { 
+        return previous > current ? previous:current;
+    });
+
+    // ready to draw
+    var canvas = document.getElementById('canvas-layer1');
+    var canvasContext = canvas.getContext('2d');
+    var canvasWidth = canvas.width;
+    var canvasHeight = canvas.height;
+    var boxWidth = 1;
+    var boxSpace = 0;
+    var boxNumber = Math.floor(canvasWidth / (boxWidth+boxSpace));
+    
+    // Get scaling coefficient
+    var scalingCoefficent = canvasHeight / maxPeak;
+
+    // Draw
+    canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
+    canvasContext.fillStyle = 'gray';
+
+    for(var i = 0 ; i < boxNumber ; i++){
+        // i-th sample magnitude (정규화 X)
+        var sampleMagnitude = channelData.samples[Math.floor((channelData.samples.length/boxNumber) * i)] * scalingCoefficent;
+        // x : (sample X Start Position)
+        // y : (canvas height - sample Height)
+        canvasContext.fillRect((boxWidth+boxSpace) * i, canvasHeight - sampleMagnitude, boxWidth, canvasHeight);
+    }
+}
+
+function modifyCanvas(channelData) {
+    // Find Sample max Peak
+    var maxPeak = channelData.samples.reduce(function (previous, current) { 
+        return previous > current ? previous:current;
+    });
+
+    var canvas = document.getElementById('canvas-layer2');
+    var canvasContext = canvas.getContext('2d');
+    var canvasWidth = canvas.width;
+    var canvasHeight = canvas.height;
+    var boxWidth = 1;
+    var boxSpace = 0;
+    var boxNumber = Math.floor(canvasWidth / (boxWidth+boxSpace));
+
+    // Get scaling coefficient
+    var scalingCoefficent = canvasHeight / maxPeak;
+    
+    // Event
+    var mouseX;
+    var mouseY;
+
+    canvas.addEventListener('mousemove', function(event){
+        if(event.layerX || event.layerX == 0){
+            mouseX = event.layerX;
+            mouseY = event.layerY;
+        }
+        else if(event.offsetX || event.offsetX == 0){
+            mouseX = event.offsetX;
+            mouseY = event.offsetY;
+        }
+        $('#mouseX').val(mouseX);
+        $('#mouseY').val(mouseY);
+    });
+    canvas.addEventListener('click',function (event) {
+        var clickRatio =  mouseX / canvasWidth;
+        canvasContext.clearRect(0, 0, canvasWidth, canvasHeight);
+        canvasContext.fillStyle = 'orange';
+        for(var i = 0 ; i < Math.floor(boxNumber * clickRatio) ; i++){
+            // i-th sample magnitude (정규화 X)
+            var sampleMagnitude = channelData.samples[Math.floor((channelData.samples.length/boxNumber) * i)] * scalingCoefficent;
+            // x : (sample X Start Position)
+            // y : (canvas height - sample Height)
+            canvasContext.fillRect((boxWidth+boxSpace) * i, canvasHeight - sampleMagnitude, boxWidth, canvasHeight);
+        }
+    });
+}

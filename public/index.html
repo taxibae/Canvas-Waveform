@@ -1,37 +1,46 @@
 <!Doctype html>
-<!--Jquery CDN-->
-<script src="https://code.jquery.com/jquery-1.12.4.js" integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU=" crossorigin="anonymous"></script>
-<!-- Bootstrap CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
-
 <html>
     <head>
         <title>Web Audio Test</title>
     </head>
+    <!--Jquery CDN-->
+    <script src="https://code.jquery.com/jquery-1.12.4.js" integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU=" crossorigin="anonymous"></script>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
     <script src="/webaudio.js"></script>
-    
     <body>
         <h1>Web Audio API Practice</h1>
         <!--Form-->
         <form role="form" id="music_getmusic" class="form-inline">
             <div class="form-group">
                 <lable for="filename">업로드 할 파일을 찾아보세요</lable>
-                <input type="text" class="form-control" placeholder="name" id="music_musicname">
-                <button type="button" id="music_browse_file" class="btn btn-default">찾아보기</button>
+                <input type="text" class="form-control" placeholder="name" id="music_musicname" value="test.mp3" />
             </div>
             <p>
                 <div class="form-group" style="width:200px; margin:auto;">
                     <button type="submit" class="btn btn-default btn-block">확인</button>
                 </div>
             </p>
-         </form>
+        </form>
         <!--Service Show-->
         <div id="service_container">
-            <canvas id="canvas" width="600" height="130" />
+            <canvas id="canvas-layer1" width="1000" height="80"></canvas>
+            <canvas id="canvas-layer2" width="1000" height="80"></canvas>
         </div>
+        <div>
+            <input type="number" id="mouseX" value="0" />
+            <input type="number" id="mouseY" value="0" />
+            <button type="button" id="move-to-0" class="btn btn-primary">0%</button>
+            <button type="button" id="move-to-25" class="btn btn-primary">25%</button>
+            <button type="button" id="move-to-75" class="btn btn-primary">50%</button>
+            <button type="button" id="move-to-50" class="btn btn-primary">75%</button>
+        </div>
+
         <button type="button" id="music_play" class="btn btn-primary">듣기</button>
         <button type="button" id="music_stop" class="btn btn-primary">정지</button>
+        <div id="music_download"></div>
     </body>
 </html>

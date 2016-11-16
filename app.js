@@ -11,7 +11,6 @@ app.use(express.static('public'));
 
 //Event Listener
 
-
 //Routing
 app.get('/gettingmusic/:name', function(req, res) {
     console.log('gettingmusic req called');
